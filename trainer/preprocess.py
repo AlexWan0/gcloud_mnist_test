@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import pickle as pickle
+import pickle
 import numpy as np
 import gzip
 def train_data():
