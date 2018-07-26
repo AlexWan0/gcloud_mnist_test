@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import tensorflow as tf
 import preprocess
+import time
+import datetime
 
 num_classes = 10
 num_epochs = 10
@@ -39,6 +41,11 @@ def net(x):
 
 	return out
 
+def get_accuracy(t_x, t_y, p_y, size):
+	correct = tf.equal(tf.argmax(p_y, 1), tf.argmax(y, 1))
+	accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+	return accuracy.eval({x:t_x[0:size], y:t_y[0:size]},session=sess)
+
 #sets placeholder for input and output
 x = tf.placeholder('float', [None, 784])
 y = tf.placeholder('float')
@@ -52,13 +59,24 @@ loss = tf.losses.mean_squared_error(labels=y, predictions=predict_y)
 optimizer = tf.train.AdamOptimizer().minimize(loss)
 
 # load data
-train_x, train_y = preprocess.train_data()
+train_x, train_y = preprocess.get_data(0)
+validate_x, validate_y = preprocess.get_data(1)
 
 sess = tf.Session()
 
-# initialize variables
+	# initialize variables
 init = tf.global_variables_initializer()
 sess.run(init)
+
+# outputs logs for tensorboard
+timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S')
+train_writer = tf.summary.FileWriter("./logs/1/train/"+timestamp, sess.graph)
+tb_counter = 0
+
+acc = tf.placeholder('float')
+tf.summary.scalar("accuracy", acc)
+tf.summary.scalar("loss", loss)
+merge = tf.summary.merge_all()
 
 for epoch in range(num_epochs):
 	#total loss for epoch
@@ -66,27 +84,31 @@ for epoch in range(num_epochs):
 
 	#goes through each batch to train
 	for i in range(batch_size, len(train_x), batch_size):
-		print("\rTraining",str(i)+"/"+str(len(train_x)), end=" ")
+		tb_counter += 1
+
+		print("\rEpoch #", epoch, "Training",str(i)+"/"+str(len(train_x)), end=" ")
 		
+		accuracy_val = get_accuracy(validate_x, validate_y, predict_y, 128)
+		print('Accuracy:', accuracy_val, end="      ")
+
 		#gets current batch
 		batch_x = train_x[i-batch_size:i]
 		batch_y = train_y[i-batch_size:i]
 		
 		#runs optimizer and gets loss
-		_, l = sess.run([optimizer, loss], feed_dict={x: batch_x, y:batch_y})
-		
+		summary, _, l = sess.run([merge, optimizer, loss], feed_dict={x:batch_x, y:batch_y, acc:accuracy_val})
+		train_writer.add_summary(summary, tb_counter)
+		#train_writer.flush()
+
 		#adds batch loss to epoch loss
 		epoch_loss += l
 
-	print("Epoch #", epoch, "loss:", epoch_loss)
+	print("loss:", epoch_loss)
 
 
 # --testing--
 
 # gets test data
-test_x, test_y = preprocess.test_data()
+test_x, test_y = preprocess.get_data(2)
 
-correct = tf.equal(tf.argmax(predict_y, 1), tf.argmax(y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
-
-print('Accuracy:',accuracy.eval({x:test_x[0:1024], y:test_y[0:1024]},session=sess))
+print('Accuracy:',get_accuracy(test_x, test_y, predict_y, 1024))

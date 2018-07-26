@@ -3,23 +3,40 @@ from __future__ import print_function
 import _pickle as pickle
 import numpy as np
 import gzip
-def train_data():
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--train-files',
+	required=True,
+	type=str,
+	help='Data zip path')
+args = parser.parse_args()
+data_path = args.train_files
+
+'''
+get_data type:
+0 = train
+1 = validation
+2 = test
+'''
+def get_data(type_num):
 	# opens pickled mnist dataset and splits resulting data
-	file = gzip.open("../data/mnist.pkl.gz", "rb")
+	file = gzip.open(data_path, "rb")
 	
-	train, validation, test = pickle.load(file, encoding='latin1')
+	#returns tuple (train, validation, test)
+	data = pickle.load(file, encoding='latin1')
 
-	train_x, train_y = train
+	x, y = data[type_num]
 
-	train_y = to_one_hot(10, train_y)
+	y = to_one_hot(10, y)
 
 	file.close()
 
-	return train_x, train_y
+	return x, y
 
 def test_data():
 	# opens pickled mnist dataset and splits resulting data
-	file = gzip.open("../data/mnist.pkl.gz", "rb")
+	file = gzip.open(data_path, "rb")
 	
 	train, validation, test = pickle.load(file, encoding='latin1')
 
