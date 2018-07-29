@@ -4,7 +4,7 @@ import _pickle as pickle
 import numpy as np
 import gzip
 import argparse
-import lib.cloudstorage
+import cloudstorage
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train-files',
