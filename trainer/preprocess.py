@@ -20,11 +20,18 @@ get_data type:
 2 = test
 '''
 def get_data(type_num):
-	# opens pickled mnist dataset and splits resulting data
-	file = gzip.open(data_path, "rb")
+	# get file from gcloud bucket
+	compressed_data = cloudstorage.open(data_path, 'rb')
+
+	# unzip data file
+	unzipped_file = gzip.GzipFile(fileobj=compressed_data)
+
+	#following is for running locally
+	#file = gzip.open(data_path, "rb")
 	
-	#returns tuple (train, validation, test)
-	data = pickle.load(file, encoding='latin1')
+	# gets data from pickle file
+	# returns tuple (train, validation, test)
+	data = pickle.load(unzipped_file, encoding='latin1')
 
 	x, y = data[type_num]
 
