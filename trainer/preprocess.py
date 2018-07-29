@@ -27,7 +27,7 @@ def get_data(type_num):
 	# unzip data file
 	unzipped_file = gzip.GzipFile(fileobj=compressed_data)
 
-	#following is for running locally
+	# following is for running locally
 	#file = gzip.open(data_path, "rb")
 	
 	# gets data from pickle file
