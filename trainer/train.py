@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import tensorflow as tf
-import preprocess
+import trainer.preprocess as preprocess
 import time
 import datetime
 
