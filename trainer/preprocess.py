@@ -42,15 +42,14 @@ def get_data(type_num):
 	# get file from bucket as blob
 	dataset_file = bucket.blob(dataset_path)
 
-	# unzips file
-	unzipped_file = gzip.GzipFile(fileobj=dataset_file, mode="rb")
+	with open("dataset_file.pkl.gz", 'wb') as file_obj:
+		blob.download_to_file(file_obj)
 
-	# following is for using local dataset
-	#file = gzip.open(data_path, "rb")
+	file = gzip.open("dataset_file.pkl.gz", "rb")
 	
 	# gets data from pickle file
 	# returns tuple (train, validation, test)
-	data = pickle.load(unzipped_file, encoding='latin1')
+	data = pickle.load(file, encoding='latin1')
 
 	x, y = data[type_num]
 
