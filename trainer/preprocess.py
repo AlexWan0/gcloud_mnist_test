@@ -4,15 +4,27 @@ import _pickle as pickle
 import numpy as np
 import gzip
 import argparse
-import cloudstorage
+from google.cloud import storage
 
+# gets command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--train-files',
+
+# gets url to bucket
+parser.add_argument('--bucket-url',
 	required=True,
 	type=str,
-	help='Data zip path')
+	help='Url to bucket')
+
+# gets path to dataset on bucket
+parser.add_argument('--dataset-path',
+	required=True,
+	type=str,
+	help='Path to dataset on bucket')
+
 args = parser.parse_args()
-data_path = args.train_files
+
+bucket_url = args.bucket_url
+dataset_path = args.dataset_path
 
 '''
 get_data type:
@@ -21,13 +33,19 @@ get_data type:
 2 = test
 '''
 def get_data(type_num):
-	# get file from gcloud bucket
-	compressed_data = cloudstorage.open(data_path, 'rb')
+	# cloud storage client
+	gcs = storage.Client()
 
-	# unzip data file
-	unzipped_file = gzip.GzipFile(fileobj=compressed_data)
+	# get bucket
+	bucket = gcs.get_bucket(bucket_url)
 
-	# following is for running locally
+	# get file from bucket as blob
+	dataset_file = bucket.blob(dataset_path)
+
+	# unzips file
+	unzipped_file = gzip.GzipFile(fileobj=dataset_file, mode="rb")
+
+	# following is for using local dataset
 	#file = gzip.open(data_path, "rb")
 	
 	# gets data from pickle file
